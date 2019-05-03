@@ -11,7 +11,12 @@ namespace Game4
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        private Texture2D paddle;
+        GameContent gameContent;
+
+        private Paddle paddle;
+        private Wall wall;
+        private int screenWidth = 0;
+        private int screenHeight = 0;
 
 
         public Game1()
@@ -44,8 +49,31 @@ namespace Game4
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            paddle = Content.Load<Texture2D>("paddle");
-            
+            gameContent = new GameContent(Content);
+            screenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            screenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+
+            //set game to a 502x700 or screen max if smaller
+
+            if (screenWidth >= 502)
+            {
+                screenWidth = 502;
+            }
+
+            if (screenHeight >= 700)
+            {
+                screenHeight = 700;
+            }
+            graphics.PreferredBackBufferWidth = screenWidth;
+            graphics.PreferredBackBufferHeight = screenHeight;
+            graphics.ApplyChanges();
+
+            //create game objects
+            int paddleX = (screenWidth - gameContent.imgPaddle.Width) / 2; //centers the paddle on the screen
+            int paddleY = screenHeight - 100; //makes paddle 100 pixels from bottom of screen
+            paddle = new Paddle(paddleX, paddleY, screenWidth, spriteBatch, gameContent); //creates paddle
+            wall = new Wall(1, 50, spriteBatch, gameContent);
+
         }
 
         /// <summary>
@@ -64,20 +92,33 @@ namespace Game4
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (IsActive == false)
+            {
+                return;
+            }
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             // TODO: Add your update logic here
-            KeyboardState state = Keyboard.GetState();
-            bool leftArrowKeyDown = state.IsKeyDown(Keys.Left);
-            int paddleCordX = paddle.Bounds.Location.X;
-           Rectangle paddlePostion = new Rectangle(paddleCordX, paddle.Bounds.Location.Y, paddle.Bounds.Width, paddle.Bounds.Height);
+            KeyboardState newKeyboardState = Keyboard.GetState();
+            if (newKeyboardState.IsKeyDown(Keys.Left))
+            {
 
-            if (state.IsKeyDown(Keys.Left)) { 
-                paddlePostion = new Rectangle(paddleCordX - 30, paddle.Bounds.Location.Y, paddle.Bounds.Width, paddle.Bounds.Height);
-            
-                
+
+                paddle.MoveLeft();
             }
+
+
+            if (newKeyboardState.IsKeyDown(Keys.Right))
+            {
+
+
+                paddle.MoveRight();
+            }
+            
+            
+
+
 
             base.Update(gameTime);
         }
@@ -88,14 +129,14 @@ namespace Game4
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
 
             spriteBatch.Begin();
 
-            paddle.Draw
-
+            paddle.Draw();
+            wall.Draw();
             spriteBatch.End();
 
             base.Draw(gameTime);
